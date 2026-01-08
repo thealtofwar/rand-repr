@@ -3,7 +3,6 @@ name = "rand-repr"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
-license-file = "LICENSE"
 description = "Randomize enum representations in accordance with Riscure Fault Mitigation Pattern 1"
 
 [lib]
