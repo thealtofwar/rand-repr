@@ -156,11 +156,11 @@ fn transform_token_tree(
     for child_token_tree in token_stream {
         if let TokenTree::Group(ref group) = child_token_tree {
             // recurse
-            result_token_stream.extend([transform_token_tree(
+            result_token_stream.extend([TokenTree::Group(Group::new(group.delimiter(), transform_token_tree(
                 group.stream(),
                 generated_reprs,
                 integral_type,
-            )]);
+            )))]);
             continue;
         }
 
