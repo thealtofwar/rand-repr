@@ -1,9 +1,7 @@
 extern crate proc_macro;
 use std::collections::HashSet;
 
-use proc_macro::{
-    Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree,
-};
+use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 use rand::{TryRngCore, rngs::OsRng};
 
 fn compile_error(msg: &str) -> TokenStream {
@@ -146,6 +144,46 @@ fn generate_unique_repr(
     }
 }
 
+fn transform_token_tree(
+    token_stream: TokenStream,
+    generated_reprs: &mut HashSet<Integral>,
+    integral_type: IntegralType,
+) -> TokenStream {
+    let mut result_token_stream = TokenStream::new();
+
+    let mut last_token_tree: Option<TokenTree> = None;
+
+    for child_token_tree in token_stream {
+        if let TokenTree::Group(ref group) = child_token_tree {
+            // recurse
+            result_token_stream.extend([transform_token_tree(
+                group.stream(),
+                generated_reprs,
+                integral_type,
+            )]);
+            continue;
+        }
+
+        if let TokenTree::Punct(ref punct) = child_token_tree
+            && punct.as_char() == ','
+            && last_token_tree.is_some_and(|last_tree| {
+                matches!(last_tree, TokenTree::Ident(_) | TokenTree::Group(_))
+            })
+        {
+            // insert an = num here
+            result_token_stream.extend([
+                TokenTree::Punct(Punct::new('=', Spacing::Alone)),
+                TokenTree::Literal(
+                    generate_unique_repr(generated_reprs, integral_type).to_literal(),
+                ),
+            ]);
+        }
+        result_token_stream.extend([child_token_tree.clone()]);
+        last_token_tree = Some(child_token_tree.clone());
+    }
+    result_token_stream
+}
+
 #[proc_macro_attribute]
 pub fn randomize_repr(attrs: TokenStream, item: TokenStream) -> TokenStream {
     let original_token_trees: Vec<TokenTree> = item.into_iter().collect();
@@ -162,32 +200,12 @@ pub fn randomize_repr(attrs: TokenStream, item: TokenStream) -> TokenStream {
 
     let integral_type = attr_result.unwrap();
 
-    let mut last_token_tree: Option<TokenTree> = None;
-
     let mut result_token_stream = TokenStream::new();
 
     result_token_stream.extend(integral_type.gen_repr_annotation());
 
     let mut generated_reprs: HashSet<Integral> = HashSet::new();
 
-    for original_token_tree in original_token_trees {
-        if let TokenTree::Punct(ref punct) = original_token_tree
-            && punct.as_char() == ','
-            && last_token_tree.is_some_and(|last_tree| {
-                matches!(last_tree, TokenTree::Ident(_) | TokenTree::Group(_))
-            })
-        {
-            // insert an = num here
-            result_token_stream.extend([
-                TokenTree::Punct(Punct::new('=', Spacing::Alone)),
-                TokenTree::Literal(
-                    generate_unique_repr(&mut generated_reprs, integral_type).to_literal(),
-                ),
-            ]);
-        }
-        result_token_stream.extend([original_token_tree.clone()]);
-        last_token_tree = Some(original_token_tree.clone());
-    }
     result_token_stream
 }
 
