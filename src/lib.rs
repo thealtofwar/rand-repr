@@ -186,7 +186,7 @@ fn transform_token_tree(
 
 #[proc_macro_attribute]
 pub fn randomize_repr(attrs: TokenStream, item: TokenStream) -> TokenStream {
-    let original_token_trees: Vec<TokenTree> = item.into_iter().collect();
+    let original_token_trees: Vec<TokenTree> = item.clone().into_iter().collect();
 
     if !is_enum(&original_token_trees) {
         return compile_error("this macro must be called on an enum");
@@ -205,6 +205,8 @@ pub fn randomize_repr(attrs: TokenStream, item: TokenStream) -> TokenStream {
     result_token_stream.extend(integral_type.gen_repr_annotation());
 
     let mut generated_reprs: HashSet<Integral> = HashSet::new();
+
+    result_token_stream.extend([transform_token_tree(item, &mut generated_reprs, integral_type)]);
 
     result_token_stream
 }
