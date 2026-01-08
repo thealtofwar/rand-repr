@@ -25,7 +25,7 @@ fn compile_error(msg: &str) -> TokenStream {
     out
 }
 
-fn is_enum(token_trees: &Vec<TokenTree>) -> bool {
+fn is_enum(token_trees: &[TokenTree]) -> bool {
     match &token_trees[0] {
         TokenTree::Ident(ident) => ident.to_string() == "enum",
         _ => false,
@@ -98,12 +98,12 @@ enum Integral {
 }
 
 impl Integral {
-    fn to_literal(&self) -> Literal {
+    fn to_literal(self) -> Literal {
         match self {
-            Integral::u32(i) => Literal::u32_suffixed(*i),
-            Integral::i32(i) => Literal::i32_suffixed(*i),
-            Integral::u64(i) => Literal::u64_suffixed(*i),
-            Integral::i64(i) => Literal::i64_suffixed(*i),
+            Integral::u32(i) => Literal::u32_suffixed(i),
+            Integral::i32(i) => Literal::i32_suffixed(i),
+            Integral::u64(i) => Literal::u64_suffixed(i),
+            Integral::i64(i) => Literal::i64_suffixed(i),
         }
     }
 }
