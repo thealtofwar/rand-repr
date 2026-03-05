@@ -22,6 +22,8 @@ fn compile_error(msg: &str) -> TokenStream {
     let group = Group::new(Delimiter::Parenthesis, error_str);
     out.extend([TokenTree::Group(group)]);
 
+    out.extend([Punct::new(';', Spacing::Alone)]);
+
     out
 }
 
