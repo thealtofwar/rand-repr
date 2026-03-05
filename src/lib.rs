@@ -185,6 +185,15 @@ fn transform_token_tree(
 }
 
 #[proc_macro_attribute]
+/// Randomizes the representation of a macro. Must be called with a representation to use
+/// ```
+/// #[randomize_repr(u32)]
+/// enum Status {
+///     NoLogin,
+///     LoggedIn,
+///     SuperUser
+/// }
+/// ```
 pub fn randomize_repr(attrs: TokenStream, item: TokenStream) -> TokenStream {
     let original_token_trees: Vec<TokenTree> = item.clone().into_iter().collect();
 
