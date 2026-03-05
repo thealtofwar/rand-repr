@@ -27,8 +27,17 @@ fn compile_error(msg: &str) -> TokenStream {
 
 fn is_enum(token_trees: &[TokenTree]) -> bool {
     match &token_trees[0] {
-        TokenTree::Ident(ident) => ident.to_string() == "enum",
-        _ => false,
+        TokenTree::Ident(ident) => {
+            if ident.to_string() == "enum" {
+                true
+            } else {
+                match &token_trees[1] {
+                    TokenTree::Ident(ident) => ident.to_string() == "enum",
+                    _ => false
+                }
+            }
+        },
+        _ => false
     }
 }
 
